@@ -123,7 +123,9 @@ public class ChemicalStack {
                 temp_s.push(stack.pop());
             }
         }
-        ret.append(basic(flip(temp_s))).append("+");
+        if (!temp_s.empty()){
+            ret.append(basic(flip(temp_s))).append("+");
+        }
         for (int i = 0;i < lowers.size();i++){
             if (i+1 == lowers.size()){
                 ret.append(lowerBrackets(lowers.get(i)));
