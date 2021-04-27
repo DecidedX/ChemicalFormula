@@ -141,9 +141,9 @@ public class ChemicalStack {
         }
         stack = removeLower(stack);
         if (times.equals("1")){
-            return basic(stack);
+            return basic(flip(stack));
         }else {
-            return times + "*(" + basic(stack) + ")";
+            return times + "*(" + basic(flip(stack)) + ")";
         }
     }
 
