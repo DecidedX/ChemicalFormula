@@ -68,10 +68,10 @@ public class ChemicalStack {
         return ret.toString();
     }
 
-    private Stack<String> collectLower(Stack<String> stack){
+    private Stack<String> collectLower(Stack<String> stack){//同中括号一样
         Stack<String> temp = new Stack<>();
         temp.push(stack.pop());
-        while (!Matchers.matcherLowerBrackets(stack.peek())){//
+        while (!Matchers.matcherLowerBrackets(stack.peek())){
             temp.push(stack.pop());
         }
         temp.push(stack.pop());
@@ -80,21 +80,21 @@ public class ChemicalStack {
 
     private Stack<String> collectMiddle(Stack<String> stack){
         Stack<String> temp = new Stack<>();
-        temp.push(stack.pop());
-        while (!Matchers.matcherMiddleBrackets(stack.peek())){
-            temp.push(stack.pop());
+        temp.push(stack.pop());//括号入栈
+        while (!Matchers.matcherMiddleBrackets(stack.peek())){//再次碰到括号时停止
+            temp.push(stack.pop());//元素入栈
         }
-        temp.push(stack.pop());
-        return temp;
+        temp.push(stack.pop());//括号入栈
+        return temp;//返回括号及其内容
     }
 
 
-    private String middleBrackets(Stack<String> stack){
-        String times = "1";
+    private String middleBrackets(Stack<String> stack){//对中括号栈进行处理
+        String times = "1";//栈顶有数字即是倍数,若不是则倍数为1
         if (Matchers.matcherNumber(stack.peek())){
             times = stack.pop();
         }
-        stack = removeMiddle(flip(stack));
+        stack = removeMiddle(flip(stack));//移除中括号，flip是翻转栈
         if (times.equals("1")){
             return lowers(stack);
         }else {
@@ -103,31 +103,38 @@ public class ChemicalStack {
     }
 
 
-    private String lowers(Stack<String> stack){
+    private String lowers(Stack<String> stack){//获取小括号及其内容
         StringBuilder ret = new StringBuilder();
-        Stack<String> temp_s = new Stack<>();
-        List<Stack<String>> lowers = new ArrayList<>();
+        Stack<String> temp_s = new Stack<>();//临时栈
+        List<Stack<String>> lowers = new ArrayList<>();//每个括号及内容为一个元素，将其存入此列表
         while (!stack.empty()){
-            if (Matchers.matcherNumber(stack.peek())){
-                String num = stack.pop();
+            if (Matchers.matcherNumber(stack.peek())){//判断数字
+                String num = stack.pop();//从栈顶移除并赋值给num
                 if (Matchers.matcherLowerBrackets(stack.peek())){
+                    //判断括号，若是括号则存有倍数关系
+                    //collectLower 收集小括号内容
                     Stack<String> temp = collectLower(stack);
-                    temp.push(num);
-                    lowers.add(temp);
+                    temp.push(num);//将倍数存入栈顶
+                    lowers.add(temp);//添加到存括号的列表
                 }else {
+                    //不是括号，则为简单形式，直接入栈
                     temp_s.push(num);
                 }
-            }else if (Matchers.matcherLowerBrackets(stack.peek())){
+            }else if (Matchers.matcherLowerBrackets(stack.peek())){//不是数字时，判断括号
+                //若是括号则为简单形式括号，直接收集并添加到列表
                 lowers.add(collectLower(stack));
             }else {
+                //不是括号，则为简单形式，直接入栈
                 temp_s.push(stack.pop());
             }
         }
-        if (!temp_s.empty()){
+        //输入栈内括号处理结束后
+        if (!temp_s.empty()){//栈内剩下的简单形式处理
             ret.append(basic(flip(temp_s))).append("+");
         }
+        //遍历存括号内容的列表
         for (int i = 0;i < lowers.size();i++){
-            if (i+1 == lowers.size()){
+            if (i+1 == lowers.size()){//若为列表中最后一个，则不加括号
                 ret.append(lowerBrackets(lowers.get(i)));
             }else {
                 ret.append(lowerBrackets(lowers.get(i))).append("+");
@@ -137,13 +144,15 @@ public class ChemicalStack {
     }
 
     private String lowerBrackets(Stack<String> stack){
+        //初始倍数为1
         String times = "1";
+        //若栈最上层匹配数字，则为倍数并覆盖初始值
         if (Matchers.matcherNumber(stack.peek())){
             times = stack.pop();
         }
-        stack = removeLower(stack);
+        stack = removeLower(stack);//移除小括号
         if (times.equals("1")){
-            return basic(flip(stack));
+            return basic(flip(stack));//1倍不需要乘
         }else {
             return times + "*(" + basic(flip(stack)) + ")";
         }
@@ -152,6 +161,7 @@ public class ChemicalStack {
     private Stack<String> removeMiddle(Stack<String> stack){
         Stack<String> temp = new Stack<>();
         while (!stack.empty()){
+            //若是括号则移除，不是就保留
             if (Matchers.matcherMiddleBrackets(stack.peek())){
                 stack.pop();
             }else {
@@ -161,7 +171,7 @@ public class ChemicalStack {
         return flip(temp);
     }
 
-    private Stack<String> removeLower(Stack<String> stack){
+    private Stack<String> removeLower(Stack<String> stack){//同Middle
         Stack<String> temp = new Stack<>();
         while (!stack.empty()){
             if (Matchers.matcherLowerBrackets(stack.peek())){
@@ -173,26 +183,32 @@ public class ChemicalStack {
         return flip(temp);
     }
 
-    private String dot(Stack<String> stack){
+    private String dot(Stack<String> stack){//中间存在点的简单式
+        //临时栈，以点为界限，此栈用于存放后半部分
         Stack<String> temp_s = new Stack<>();
         StringBuilder ret = new StringBuilder();
         while (!stack.empty()){
+            //若元素匹配为点，则分离完成
             if (Matchers.matcherDot(stack.peek())){
-                stack.pop();
+                stack.pop();//删除点
+                //此时临时栈和输入栈均为简单形式，使用basic方法进行运算获取返回值并用加号相连
                 ret.append(basic(stack)).append("+");
                 flipStack(stack,temp_s);
                 ret.append(times(Integer.parseInt(temp_s.pop()), stack));
             }else {
+                //一直出栈未匹配到点则一直存入临时栈
                 temp_s.push(stack.pop());
             }
         }
         return ret.toString();
     }
 
-    private String times(int times,Stack<String> stack){
+    private String times(int times,Stack<String> stack){//倍数处理
         if (times == 1){
+            //倍数为一则进行简单处理
             return basic(stack);
         }else {
+            //倍数不为一则将倍数乘以栈处理结果
             return times + "*(" + basic(stack) + ")";
         }
 
@@ -200,29 +216,31 @@ public class ChemicalStack {
 
     private String basic(Stack<String> stack){
         StringBuilder ret = new StringBuilder();
-        while (!stack.empty()){
-            if (Matchers.matcherNumber(stack.peek())){
-                String num = stack.pop();
-                if (stack.empty()){
+        while (!stack.empty()){//遍历栈
+            if (Matchers.matcherNumber(stack.peek())){//判断数字
+                String num = stack.pop();//取出数字
+                if (stack.empty()){//若是空栈则为总倍数
                     ret = new StringBuilder(num + "*(" + ret + ")");
                 }else {
-                    ret.append(num).append("*");
+                    ret.append(num).append("*");//加上乘号，表示乘以后方元素
                 }
             }else {
-                ret.append(ElementsTable.getMass(stack.pop()));
+                //不是数字
+                ret.append(ElementsTable.getMass(stack.pop()));//获取元素的相对原子质量
                 if (!stack.empty()){
+                    //出栈再判断是否为空栈，若不是空栈并且不是数字则在后方添加加号
                     String element = stack.pop();
                     if (!(stack.empty() && Matchers.matcherNumber(element))){
                         ret.append("+");
                     }
-                    stack.push(element);
+                    stack.push(element);//元素入栈，继续进行处理
                 }
             }
         }
         return ret.toString();
     }
 
-    private boolean hasMiddleBrackets(){
+    private boolean hasMiddleBrackets(){//栈内是否含有中括号
         boolean ret = false;
         for (String s:stack){
             if (Matchers.matcherMiddleBrackets(s)){
@@ -233,7 +251,7 @@ public class ChemicalStack {
         return ret;
     }
 
-    private boolean hasLowerBrackets(){
+    private boolean hasLowerBrackets(){//栈内是否含有小括号
         boolean ret = false;
         for (String s:stack){
             if (Matchers.matcherLowerBrackets(s)){
@@ -244,7 +262,7 @@ public class ChemicalStack {
         return ret;
     }
 
-    private boolean hasDot(){
+    private boolean hasDot(){//栈内是否含有点符号
         boolean ret = false;
         for (String s:stack){
             if (Matchers.matcherDot(s)){
@@ -255,7 +273,7 @@ public class ChemicalStack {
         return ret;
     }
 
-    private void flipStack(Stack<String> in,Stack<String> out){
+    private void flipStack(Stack<String> in,Stack<String> out){//TODO:NEED REFACTOR
         String num = "1";
         if (Matchers.matcherNumber(out.peek())){
             num = out.pop();
@@ -267,6 +285,7 @@ public class ChemicalStack {
     }
 
     private Stack<String> flip(Stack<String> stack){
+        //遍历出栈移入栈完成翻转
         Stack<String> temp = new Stack<>();
         while (!stack.empty()){
             temp.push(stack.pop());
